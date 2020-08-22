@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>
+        <block name="title"></block>
+    </title>
+    <include file="common/reference"/>
+    <block name="css"></block>
+</head>
+<body>
+<div class="content">
+    <block name="content"></block>
+</div>
+</body>
+<script>
+    $("input[type='text']").attr("autocomplete", "off")
+</script>
+<block name="js"></block>
+</html>

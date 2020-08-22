@@ -1,0 +1,81 @@
+<extend name="common/iframe"/>
+
+<block name="title">
+</block>
+
+<block name="content">
+    <form action="">
+        <table class="table table-bordered">
+            <colgroup>
+                <col width="20%">
+                <col width="80%">
+            </colgroup>
+            <tr>
+                <th>轮播图图片</th>
+                <td class="image-list">
+                    <div class="image-list">
+                        <div class="image-upload" id="image-upload">
+                            <span class="glyphicon glyphicon-upload"></span>
+                        </div>
+                        <div class="image">
+                            <img src="{$item.image_url}">
+                            <span class="glyphicon glyphicon-remove" onclick="remove_image(this)"></span>
+                            <input type="hidden" name="image" value="{$item.image}">
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <th>轮播图名称</th>
+                <td>
+                    <input type="text" class="form-control" name="name">
+                </td>
+            </tr>
+        </table>
+    </form>
+    <if condition="!empty($item)">
+        <script>
+            $("[name='name']").val(`{$item.name}`)
+        </script>
+    </if>
+</block>
+
+<block name="css">
+</block>
+
+<block name="js">
+    <script>
+        layui.use(["upload"], () => {
+            const upload = layui.upload
+            const url = `{:cmf_plugin_url('Carousel://api_index/upload')}`
+            upload.render({
+                elem: "#image-upload",
+                url: url,
+                accept: "images",
+                acceptMime: "image/*",
+                size: 4 * 1024,
+                before: () => {
+                    layer.load(1)
+                },
+                done: ({code, message, data}) => {
+                    layer.closeAll("loading")
+                    layer.msg(message, {time: 1000})
+                    if (code === 200) {
+                        const {fullName, saveName} = data
+                        const element = $("#image-upload")
+                        if (!empty(2, element.siblings(".image"))) {
+                            element.siblings(".image").remove()
+                        }
+                        element.parent().append(`
+                            <div class="image">
+                                <img src="${fullName}">
+                                <span class="glyphicon glyphicon-remove" onclick="remove_image(this)"></span>
+                                <input type="hidden" name="image" value="${saveName}">
+                            </div>
+                        `)
+                    }
+                }
+            })
+        })
+    </script>
+</block>

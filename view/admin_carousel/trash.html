@@ -1,0 +1,108 @@
+<extend name="common/iframe"/>
+
+<block name="title">
+</block>
+
+<block name="content">
+    <form action="" class="well form form-inline">
+        <div class="input-group">
+            <div class="input-group-addon">关键词</div>
+            <div class="input-group-btn">
+                <select name="search[key]" class="form-control">
+                    <option value="">未选择</option>
+                    <option value="1">轮播图名称</option>
+                    <option value="2">轮播图链接</option>
+                </select>
+            </div>
+            <input type="text" class="form-control" name="search[value]">
+        </div>
+        <div class="input-group">
+            <div class="input-group-addon">轮播图状态</div>
+            <select name="search[status]" class="form-control">
+                <option value="">未选择</option>
+                <option value="1">启用</option>
+                <option value="2">禁用</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-default" type="submit">搜索</button>
+            <button class="btn btn-default" type="reset">重置</button>
+        </div>
+    </form>
+    <if condition="!empty($search)">
+        <script>
+            $("[name='search[key]']").val(`{$search.key}`)
+            $("[name='search[value]']").val(`{$search.value}`)
+            $("[name='search[status]']").val(`{$search.status}`)
+        </script>
+    </if>
+    <div class="well tool">
+        <button class="btn btn-sm btn-primary" type="button"
+                onclick="execute_ids(`{:cmf_plugin_url('Carousel://admin_carousel/recoverAll')}`, '确认还原选中?')">
+            <i class="glyphicon glyphicon-ok"></i> 还原选中
+        </button>
+        <button class="btn btn-sm btn-danger" type="button"
+                onclick="execute_ids(`{:cmf_plugin_url('Carousel://admin_carousel/removeAllTrue')}`, '确认删除选中?')">
+            <i class="glyphicon glyphicon-remove"></i> 删除选中
+        </button>
+    </div>
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th width="50">
+                <input type="checkbox" onchange="check(this)">
+            </th>
+            <th>轮播图编号</th>
+            <th>轮播图图片</th>
+            <th>轮播图名称</th>
+            <th>轮播图链接</th>
+            <th>轮播图状态</th>
+            <th>删除时间</th>
+            <th>操作</th>
+        </tr>
+        <volist name="items" id="item">
+            <tr>
+                <td>
+                    <input type="checkbox" name="id" value="{$item.id}">
+                </td>
+                <td>{$item.id}</td>
+                <td>
+                    <div class="image">
+                        <img src="{$item.image_url}" onclick="open_image(this)">
+                    </div>
+                </td>
+                <td>{$item.name}</td>
+                <td>{$item.link}</td>
+                <td>
+                    <switch name="$item.status">
+                        <case value="1">
+                            <div class="success">{$item.status_text}</div>
+                        </case>
+                        <case value="2">
+                            <div class="error">{$item.status_text}</div>
+                        </case>
+                    </switch>
+                </td>
+                <td>{$item.delete_time}</td>
+                <td>
+                    <button class="btn btn-sm btn-primary" type="button"
+                            onclick="execute_id({$item.id}, `{:cmf_plugin_url('Carousel://admin_carousel/recover')}`, '确认还原?')">
+                        <i class="glyphicon glyphicon-ok"></i> 还原
+                    </button>
+                    <button class="btn btn-sm btn-danger" type="button"
+                            onclick="execute_id({$item.id}, `{:cmf_plugin_url('Carousel://admin_carousel/removeTrue')}`, '确认删除?')">
+                        <i class="glyphicon glyphicon-remove"></i> 删除
+                    </button>
+                </td>
+            </tr>
+        </volist>
+    </table>
+    <if condition="!empty($pages)">
+        <div class="pagination pagination-sm">{$pages}</div>
+    </if>
+</block>
+
+<block name="css">
+</block>
+
+<block name="js">
+</block>

@@ -1,0 +1,218 @@
+<extend name="common/frame"/>
+
+<block name="title">
+    index
+</block>
+
+<block name="content">
+    <script>
+        $(".nav li").eq(0).addClass("active")
+    </script>
+    <form action="" class="well form form-inline">
+        <div class="input-group">
+            <div class="input-group-addon">关键词</div>
+            <div class="input-group-btn">
+                <select name="search[key]" class="form-control">
+                    <option value="">未选择</option>
+                    <option value="1">轮播图名称</option>
+                    <option value="2">轮播图链接</option>
+                </select>
+            </div>
+            <input type="text" class="form-control" name="search[value]">
+        </div>
+        <div class="input-group">
+            <div class="input-group-addon">轮播图状态</div>
+            <select name="search[status]" class="form-control">
+                <option value="">未选择</option>
+                <option value="1">启用</option>
+                <option value="2">禁用</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-default" type="submit">搜索</button>
+            <button class="btn btn-default" type="reset">重置</button>
+        </div>
+    </form>
+    <if condition="!empty($search)">
+        <script>
+            $("[name='search[key]']").val(`{$search.key}`)
+            $("[name='search[value]']").val(`{$search.value}`)
+            $("[name='search[status]']").val(`{$search.status}`)
+        </script>
+    </if>
+    <div class="well tool">
+        <button class="btn btn-sm btn-danger" type="button"
+                onclick="execute_ids(`{:cmf_plugin_url('Carousel://admin_carousel/removeAll')}`, `确认删除选中?`)">
+            <i class="glyphicon glyphicon-remove"></i> 删除选中
+        </button>
+        <button class="btn btn-sm btn-primary" type="button" onclick="trash()">
+            <i class="glyphicon glyphicon-trash"></i> 回收站
+        </button>
+        <button class="btn btn-sm btn-success" type="button" onclick="add()">
+            <i class="glyphicon glyphicon-plus-sign"></i> 添加
+        </button>
+    </div>
+    <table class="table table-bordered table-hover">
+        <tr>
+            <th width="50">
+                <input type="checkbox" onchange="check(this)">
+            </th>
+            <th width="100">轮播图排序</th>
+            <th>轮播图编号</th>
+            <th>轮播图图片</th>
+            <th>轮播图名称</th>
+            <th width="300">轮播图链接</th>
+            <th>轮播图状态</th>
+            <th>操作</th>
+        </tr>
+        <volist name="items" id="item">
+            <tr>
+                <td>
+                    <input type="checkbox" name="id" value="{$item.id}">
+                </td>
+                <td>
+                    <input type="number" class="form-control" value="{$item.sort}"
+                           onchange="execute_sort({$item.id}, this, `{:cmf_plugin_url('Carousel://admin_carousel/sort')}`)">
+                </td>
+                <td>{$item.id}</td>
+                <td>
+                    <div class="image">
+                        <img src="{$item.image_url}" onclick="open_image(this)">
+                    </div>
+                </td>
+                <td>{$item.name}</td>
+                <td>
+                    <input type="text" class="form-control" value="{$item.link}"
+                           onchange="execute_link({$item.id}, this, `{:cmf_plugin_url('Carousel://admin_carousel/input')}`)">
+                </td>
+                <td>
+                    <switch name="$item.status">
+                        <case value="1">
+                            <div class="success">{$item.status_text}</div>
+                        </case>
+                        <case value="2">
+                            <div class="error">{$item.status_text}</div>
+                        </case>
+                    </switch>
+                </td>
+                <td>
+                    <switch name="$item.status">
+                        <case value="1">
+                            <button class="btn btn-sm btn-danger" type="button"
+                                    onclick="execute_status({$item.id}, 2, `{:cmf_plugin_url('Carousel://admin_carousel/status')}`, `确认禁用?`)">
+                                <i class="glyphicon glyphicon-th"></i> 禁用
+                            </button>
+                        </case>
+                        <case value="2">
+                            <button class="btn btn-sm btn-success" type="button"
+                                    onclick="execute_status({$item.id}, 1, `{:cmf_plugin_url('Carousel://admin_carousel/status')}`, `确认启用?`)">
+                                <i class="glyphicon glyphicon-th"></i> 启用
+                            </button>
+                        </case>
+                    </switch>
+                    <button class="btn btn-sm btn-primary" type="button" onclick="edit({$item.id})">
+                        <i class="glyphicon glyphicon-edit"></i> 编辑
+                    </button>
+                    <button class="btn btn-sm btn-danger" type="button"
+                            onclick="execute_id({$item.id}, `{:cmf_plugin_url('Carousel://admin_carousel/remove')}`, `确认删除?`)">
+                        <i class="glyphicon glyphicon-remove"></i> 删除
+                    </button>
+                </td>
+            </tr>
+        </volist>
+    </table>
+    <if condition="!empty($pages)">
+        <div class="pagination pagination-sm">{$pages}</div>
+    </if>
+</block>
+
+<block name="css">
+</block>
+
+<block name="js">
+    <script>
+        function execute_link(id, _this, url) {
+            asynchronous(url, {id, link: $(_this).val()})
+        }
+
+        function add() {
+            const title = "添加"
+            const content = `{:cmf_plugin_url('Carousel://admin_carousel/add')}`
+            layer.open({
+                type: 2,
+                title: title,
+                content: content,
+                btn: ["确认"],
+                area: ["800px", "306px"],
+                id: "iframe",
+                resize: false,
+                scrollbar: false,
+                yes: iframe => {
+                    const form = layer.getChildFrame("form", iframe)
+                    const data = {
+                        image: form.find("[name='image']").val(),
+                        name: form.find("[name='name']").val()
+                    }
+                    $.post(content, data, ({code, message}) => {
+                        layer.msg(message, {time: 1000})
+                        if (code === 200) {
+                            layer.close(iframe)
+                            setTimeout(() => {
+                                location.reload()
+                            }, 1000)
+                        }
+                    })
+                }
+            })
+        }
+
+        function edit(id) {
+            const title = "编辑"
+            const content = `{:cmf_plugin_url('Carousel://admin_carousel/edit')}?id=${id}`
+            layer.open({
+                type: 2,
+                title: title,
+                content: content,
+                btn: ["确认"],
+                area: ["800px", "306px"],
+                id: "iframe",
+                resize: false,
+                scrollbar: false,
+                yes: iframe => {
+                    const form = layer.getChildFrame("form", iframe)
+                    const data = {
+                        image: form.find("[name='image']").val(),
+                        name: form.find("[name='name']").val()
+                    }
+                    $.post(content, data, ({code, message}) => {
+                        layer.msg(message, {time: 1000})
+                        if (code === 200) {
+                            layer.close(iframe)
+                            setTimeout(() => {
+                                location.reload()
+                            }, 1000)
+                        }
+                    })
+                }
+            })
+        }
+
+        function trash() {
+            const title = "回收站"
+            const content = `{:cmf_plugin_url('Carousel://admin_carousel/trash')}`
+            layer.open({
+                type: 2,
+                title: title,
+                content: content,
+                btn: ["确认"],
+                area: ["1600px", "800px"],
+                id: "iframe",
+                resize: false,
+                scrollbar: false,
+                end: () => {
+                    location.reload()
+                }
+            })
+        }
+    </script>
+</block>
